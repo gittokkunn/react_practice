@@ -1,7 +1,13 @@
 import React, { Component } from 'react';
+import { Container } from 'flux/utils';
 import PropTypes from 'prop-types';
 import logo from './logo.svg';
 import './App.css';
+
+import ActionCreator from './ActionCreator';
+
+import ListItemStore from './store/ListItem';
+import CartItemStore from './store/CartItem';
 
 const Header = (props) => {
   return(
@@ -10,8 +16,6 @@ const Header = (props) => {
     </div>
   )
 }
-
-
 
 class ItemList extends Component {
   constructor() {
@@ -40,6 +44,7 @@ class ItemList extends Component {
 class Cart extends Component {
   constructor() {
     super()
+    this.make_cart_list = this.make_cart_list.bind(this)
   }
 
   get_amount(list) {
@@ -55,13 +60,13 @@ class Cart extends Component {
   }
 
   make_cart_list(list) {
-    if (list) {
+    if (list.length) {
       const item_list = list.map((item, idx) => {
         return(
           <div key={idx} className="Cart-ItemList-Item">
             <h1>{ item.name }</h1>
             <p className="Cart-ItemList-Price">{ item.price }円</p>
-            <button type="button">カートから出す</button>
+            <button type="button" onClick={(idx) => {this.props.removeFromCart(idx)}}>カートから出す</button>
           </div>
         )
       })
@@ -79,7 +84,6 @@ class Cart extends Component {
     const {cartItems} = this.props
     const item_list = this.make_cart_list(cartItems)
     const amount_price = this.get_amount(cartItems)
-    const amount_text = `計 ${cartItems.length} 点 : ${amount_price} 円`
     return (
       <div className="Cart">
         カート
@@ -88,7 +92,7 @@ class Cart extends Component {
           {item_list}
         </div>
         <div className="Cart-Amount">
-          {(amount_price) ? amount_text : ''}
+          {`計 ${cartItems.length} 点 : ${amount_price} 円`}
         </div>
       </div>
     );
@@ -98,41 +102,35 @@ class Cart extends Component {
 
 
 class App extends Component {
-  constructor() {
-    super()
-    this.state = ({
-      items: [
-        {name: '本', price: 500, comment: "コメントが入ります"},
-        {name: '参考書', price: 2000, comment: "コメントが入ります"},
-        {name: '写真集', price: 4000, comment: "コメントが入ります"},
-        {name: 'パソコン', price: 50000, comment: "コメントが入ります"},
-        {name: 'ケータイ', price: 10000, comment: "コメントが入ります"}
-      ],
-      cartItems: [
-        {name: '本', price: 500, comment: "コメントが入ります"},
-        {name: '参考書', price: 2000, comment: "コメントが入ります"}
-      ]
-    })
-    this.addInCart = this.addInCart.bind(this)
-  }
 
-  addInCart (item) {
-    let newCartItems = this.state.cartItems.slice();
-    newCartItems.push(item);
-    this.setState({ cartItems: newCartItems });
+  componentDidMount() {
+    ActionCreator.loadListItem()
   }
 
   render() {
-    const {items, cartItems} = this.state
-    const addInCart = this.addInCart
+    const { items, cartItems } = this.state;
+    const { addInCart, removeFromCart } = ActionCreator;
     return (
       <div className="App">
         <Header title="Tokkunn Store" />
         <ItemList items={items} addInCart={addInCart} />
-        <Cart cartItems={cartItems} />
+        <Cart cartItems={cartItems} removeFromCart={removeFromCart} />
       </div>
     );
   }
 }
 
-export default App;
+App.getStores = () => {
+  return [ ListItemStore, CartItemStore ];
+};
+
+App.calculateState = (_prevState) => {
+  return {
+    items: ListItemStore.getItems(),
+    cartItems: CartItemStore.getItems(),
+  };
+};
+
+const app = Container.create(App);
+
+export default app;
