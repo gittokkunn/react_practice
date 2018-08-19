@@ -13,8 +13,8 @@ class CartItem extends ReduceStore {
     case 'ADD_CART_ITEM':
       return Object.assign({}, state, {
         items: _addItem(state.items, action.item)
-      });
-      break;
+      })
+      break
     case 'REMOVE_CART_ITEM':
       return Object.assign({}, state, {
         items: _removeItem(state.items, action.idx)

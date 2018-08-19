@@ -122,6 +122,31 @@ const Button = (props) => {
   )
 }
 
+class SearchBox extends Component {
+
+  constructor() {
+    super()
+  }
+
+  render() {
+    const {inputValue, handleSuggestValue, suggestList} = this.props
+    const renderedSuggestList = suggestList.map((val, idx) => {
+      return(
+        <ul key={idx} className="SuggestList">
+          <li>{ val }</li>
+        </ul>
+      )
+    })
+
+    return (
+      <div className="SearchBox">
+        <input value={inputValue} onChange={handleSuggestValue} />
+        { renderedSuggestList }
+      </div>
+    );
+  }
+}
+
 class PlayGround extends Component {
   constructor() {
     super()
@@ -129,9 +154,18 @@ class PlayGround extends Component {
       inputMessage: "",
       messages: [],
       isBirthday: "hiroki",
+      refSuggestList: [
+        "ほかん",
+        "きのう",
+        "じっそう"
+      ],
+      suggestList: [],
+      inputValue: ""
     }
     this.handleInputChange = this.handleInputChange.bind(this)
     this.handleButtonClick = this.handleButtonClick.bind(this)
+    this.handleSuggestValue = this.handleSuggestValue.bind(this)
+    this.setSuggestList = this.setSuggestList.bind(this)
   }
 
   handleInputChange(e) {
@@ -145,9 +179,28 @@ class PlayGround extends Component {
     messages.push(this.state.inputMessage)
     this.setState({
       inputMessage: "",
-      messages: messages
+      messages: messages,
     })
     console.log(this.state.messages)
+  }
+
+  handleSuggestValue(e) {
+    this.setSuggestList(e.target.value)
+    this.setState({
+      inputValue: e.target.value
+    })
+  }
+
+  setSuggestList(val) {
+    let newSuggestList = []
+    this.state.refSuggestList.forEach((suggest) => {
+      if(suggest.match(val) && val !== '') {
+        newSuggestList.push(suggest)
+      }
+    })
+    this.setState({
+      suggestList: newSuggestList
+    })
   }
 
   render() {
@@ -174,6 +227,7 @@ class PlayGround extends Component {
         <Button clickFunc={()=>{alert('Hi')}}>
           {children}
         </Button>
+        <SearchBox inputValue={this.state.inputValue} suggestList={this.state.suggestList} handleSuggestValue={this.handleSuggestValue}/>
 
       </div>
     );
